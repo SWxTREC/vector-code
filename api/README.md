@@ -40,7 +40,7 @@ speed: float
 
 composition: dictionary
 
-    Number density composition of atmospheric consituents [/m3]
+    Number density composition of atmospheric constituents [/m3]
 
     O: float
 
@@ -52,13 +52,13 @@ composition: dictionary
 
     H: float
 
-accomodationModel: string
+accommodationModel: string
 
     SESAM, Goodman, Fixed
 
-accomodationParameters: dictionary
+accommodationParameters: dictionary
 
-    Parameters to pass into the accomodation model
+    Parameters to pass into the accommodation model
 
     alpha: float
 
@@ -82,8 +82,8 @@ accomodationParameters: dictionary
                 "N2": 1e6,
                 "He": 1e6,
                 "H": 1e4},
-"accomodationModel": "SESAM",
-"accomodationParameters": {"alpha": 0,
+"accommodationModel": "SESAM",
+"accommodationParameters": {"alpha": 0,
                             "ms": 0}
 }
 
