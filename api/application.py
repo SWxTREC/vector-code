@@ -3,8 +3,8 @@ from flask_cors import CORS
 
 import subprocess
 
-app = Flask(__name__)
-CORS(app)
+application = Flask(__name__)
+CORS(application)
 
 
 def process_input_payload(data):
@@ -30,7 +30,7 @@ def process_sesam_output(data):
     return payload
 
 
-@app.route('/api/singlepoint', methods=['POST'])
+@application.route('/api/singlepoint', methods=['POST'])
 def sesam_run():
     if not request.json:
         abort(400)
@@ -51,4 +51,4 @@ def sesam_run():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    application.run(debug=True)
