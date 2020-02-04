@@ -1,6 +1,9 @@
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
 
+import json
+from os import remove
+from tempfile import NamedTemporaryFile
 import subprocess
 
 application = Flask(__name__)
@@ -48,6 +51,39 @@ def sesam_run():
     output_payload = process_sesam_output(output)
 
     return jsonify(output_payload)
+
+@application.route('/api/matlab', methods=['POST'])
+def matlab_test():
+    if not request.json:
+        abort(400)
+
+    with NamedTemporaryFile(delete=False, suffix='.json', mode='wt') as inf:
+        with NamedTemporaryFile(delete=False, suffix='.json') as outf:
+            in_fn = inf.name
+            out_fn = outf.name
+            # write request json to temporary file for matlab to read
+            inf.write(json.dumps(request.json))
+
+    # Create command line args, or incorporate the SESAM function?
+    # sesam_command = '/home/ec2-user/code_kim/VECTOR/api/vector_calc.sh'
+    sesam_command = '/opt/python/current/app/vector_calc.sh'
+
+    # Call matlab SESAM
+    result = subprocess.run([sesam_command, in_fn, out_fn], check=True)
+
+    # TODO handle errors
+    #print(result.returncode)
+
+    with open(out_fn, "r") as f:
+        output_payload = f.read()
+
+    remove(in_fn)
+    remove(out_fn)
+
+    # print(output_payload)
+
+    output_dict = json.loads(output_payload)
+    return jsonify(output_dict)
 
 
 if __name__ == '__main__':
