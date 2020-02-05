@@ -8,66 +8,72 @@ Overview of the input/output requirements for VECTOR. Initially, there will be a
 
 objectType: string
 
-    sphere, cylinder, plate, plate model
+`sphere, cylinder, plate, plate model`
 
 diameter: float
 
-    The diameter of the object [m]
+`The diameter of the object [m]`
 
 length: float
 
-    The length of the object [m]
+`The length of the object [m]`
 
 area: float
 
-    The area of the object [m^2]
+`The area of the object [m^2]`
 
 pitch: float
 
-    Pitch angle of the object [deg]
+`Pitch angle of the object [deg]`
 
 sideslip: float
 
-    Sideslip angle of the object [deg]
+`Sideslip angle of the object [deg]`
 
 temperature: float
 
-    Ambient temperature of the atmosphere [K]
+`Ambient temperature of the atmosphere [K]`
 
 speed: float
 
-    Speed of the object [m/s]
+`Speed of the object [m/s]`
 
 composition: dictionary
 
-    Number density composition of atmospheric constituents [/m3]
+```text
+Number density composition of atmospheric constituents [/m3]
 
-    O: float
 
-    O2: float
+O: float
 
-    N2: float
+O2: float
 
-    He: float
+N2: float
 
-    H: float
+He: float
+
+H: float
+```
 
 accommodationModel: string
 
-    SESAM, Goodman, Fixed
+`SESAM, Goodman, Fixed`
 
 accommodationParameters: dictionary
 
-    Parameters to pass into the accommodation model
+```text
+Parameters to pass into the accommodation model
 
-    alpha: float
+alpha: float
 
-    ms: float
+ms: float
 
-        [amu]
+    surface mass [amu]
+```
 
 ### Example Input Payload
 
+```json
 {
 "objectType": "cylinder",
 "diameter": 1.25,
@@ -86,25 +92,29 @@ accommodationParameters: dictionary
 "accommodationParameters": {"alpha": 0,
                             "ms": 0}
 }
+```
 
 ## Outputs
 
 dragCoefficient: float
 
-    The coefficient of drag of the object [-]
+`The coefficient of drag of the object [-]`
 
 projectedArea: float
 
-    The projected area of the object
+`The projected area of the object`
 
 forceCoefficent: float
 
-    The force coefficient of the object
+`The force coefficient of the object`
 
 ### Example Output Payload
 
+```json
 {
 "dragCoefficient": 2.8,
 "projectedArea": 3,
-"forceCoefficient": 1.2
+"forceCoefficient": 1.2,
+"energyAccommodation": 0.930
 }
+```
