@@ -29,9 +29,9 @@ Ta_trans        =   93.31;
 
 
 %% Compute Effective Pressure Parameter for Impinging Atomic Oxygen
-s_o             =   Vp*sqrt(mO/(kb*Ta));
-CD_O            =   ((2*s_o^2+1)/(sqrt(pi)*s_o^3))*exp(-s_o^2) + ((4*s_o^4+4*s_o^2-1)/(2*s_o^4))*erf(s_o);
-P_o             =   Xp*0.5*ro*CD_O*Vp^2/PaInTorr;
+s_o             =   Vp.*sqrt(mO./(kb*Ta));
+CD_O            =   ((2*s_o.^2+1)./(sqrt(pi)*s_o.^3)).*exp(-s_o.^2) + ((4*s_o.^4 + 4*s_o.^2-1) / (2*s_o.^4)).*erf(s_o);
+P_o             =   Xp.*0.5.*ro.*CD_O.*Vp.^2/PaInTorr;
 
 
 %% Accommodation coefficient: alpha(P_o,Vp)
