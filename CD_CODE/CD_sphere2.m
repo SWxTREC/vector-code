@@ -13,14 +13,17 @@ RhoTot              =   dot(MASS_MAT,NO_DENS);
 CDpart              =   zeros(1,5);
 dCDpart             =   zeros(1,5);
 
+%Cosine Reflection only 
+ff                  =   0;
+CDqs                =   0.0;
 
 %scan atomic masses
 for km=1:5
     if NO_DENS(km) == 0%skip zero number denisties
         continue
     end
-    [CDm,~,~,~]     =   sentman(0,Tatm,Tw,accom,0,Vt,MASS_MAT(km),'sphere',-1,1,1);
-    [CDqs,~,~]      =   schamberg_sphere(nu,phi_o*pi/180,Vt,Tatm,MASS_MAT(km),ms,Tw,0,set_acqs,accom);
+    [CDm,~,~,~]     =   sentman(0,Tatm,Tw,accom,0,Vt,MASS_MAT(km),'sphere',-1);
+    %[CDqs,~,~]      = schamberg_sphere(nu,phi_o*pi/180,Vt,Tatm,MASS_MAT(km),ms,Tw,0,set_acqs,accom);%<<<future capability
     CDpart(1,km)    =   (1-ff)*CDm + ff*CDqs;
 end
 

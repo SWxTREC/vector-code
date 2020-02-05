@@ -29,3 +29,4 @@ CDL                 =   dot(CDpart,RHO_MAT)/RhoTot;%recombine composite drag ceo
 CLL                 =   dot(CLpart,RHO_MAT)/RhoTot;
 
 COEFS               =   [0 CDL CLL];%placeholders for future
+
