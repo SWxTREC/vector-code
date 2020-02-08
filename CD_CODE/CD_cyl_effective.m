@@ -14,13 +14,17 @@ CDpart              =   zeros(1,5);
 CLpart              =   zeros(1,5);
 dCDpart             =   zeros(1,5);
 
+% if pitch == pi/2%prevent zero-crossing singularity
+%    pitch=pi/2-eps; 
+%    disp('pitch singularity')
+% end
 
 %scan atomic masses
 for km=1:5
     if NO_DENS(km) == 0%skip zero number denisties
         continue
     end
-    [CD,CL]         =   CD_cyl(D,L,accom,pitch,MASS_MAT(km),Vt,Tatm,Tw);
+    [CD,CL,Acs]     =   CD_cyl(D,L,accom,pitch,MASS_MAT(km),Vt,Tatm,Tw);
     CDpart(1,km)    =   CD;
     CLpart(1,km)    =   CL;
 end
@@ -28,5 +32,5 @@ end
 CDL                 =   dot(CDpart,RHO_MAT)/RhoTot;%recombine composite drag ceofficient
 CLL                 =   dot(CLpart,RHO_MAT)/RhoTot;
 
-COEFS               =   [0 CDL CLL];%placeholders for future
+COEFS               =   [0 CDL CLL Acs];%placeholders for future
 

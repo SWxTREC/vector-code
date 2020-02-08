@@ -1,7 +1,7 @@
-function [CD_tot,CL_tot] = CD_cyl(D,L,accomm,pitch,m,V_inf,T_inf,T_surf)
+function [CD_tot,CL_tot,ASC_cyl] = CD_cyl(D,L,accomm,pitch,m,V_inf,T_inf,T_surf)
 %computes the drag coefficient of a capped cylinder (pitch in radians)
 
-ASC_cyl         =   obliqueCylProjection(D,L,pitch);%cross section of cylinder
+ASC_cyl         =   abs(obliqueCylProjection(D,L,pitch));%cross section of cylinder
 Aref_surf       =   pi*D^2/4;
 [CD,CL,CN,CA]   =   sentman(pitch,T_inf,T_surf,accomm,0,V_inf,m,'cylinder',-1);%,D,L);
 CD_sides        =   CD;

@@ -21,14 +21,17 @@ CAqs                =   0.0;
 CNqs                =   0.0;
 
 %cross sectional area
-Acrs                =   A*sin(alph);
+% if alph == pi/2%prevent zero-crossing singularity
+%    alph= pi/2-eps; 
+% end
+Acrs                =   abs(A*cos(alph));
 
 %scan atomic masses
 for km=1:5
     if NO_DENS(km) == 0%skip zero number denisties
         continue
     end
-    [CDm,~,CNm,CAm] =   sentman(alph,Tatm,Tw,accom,0,Vt,MASS_MAT(km),'surfacespec',-1);
+    [CDm,~,CNm,CAm] =   sentman(pi - alph,Tatm,Tw,accom,0,Vt,MASS_MAT(km),'surfacespec',-1);
     %[CDqs,~,~]      = schamberg_sphere(nu,phi_o*pi/180,Vt,Tatm,MASS_MAT(km),ms,Tw,0,set_acqs,accom);%<<<future capability
 	CNpart(1,km)  	=   (1-ff)*CNm + ff*CNqs;
     CApart(1,km)  	=   (1-ff)*CAm + ff*CAqs;
@@ -41,4 +44,4 @@ CNL                 =   dot(CNpart,RHO_MAT)/RhoTot;%recombine composite drag ceo
 
 CDtot               =   CDL*A/Acrs;%scaled coefficients
 
-COEFS               =   [CAL CDtot CNL];%placeholders for future
+COEFS               =   [CAL CDtot CNL Acrs];%placeholders for future

@@ -80,6 +80,9 @@ if strcmp(shape,'cylinder')
     %answer must be scaled to length times radius
     %alph is the pitch angle away from the axis of revolution
     Spar    =   S^2*sin(alph)^2/2;
+    if Spar > 500
+        Spar= 500;%limit to keep besseli function from blowing up
+    end
     scl     =   0;%bessel function scaling
     %Aref    =   obliqueCylProjection(D,L,alph);%<<<<<<<(pi*D^2/4)*cos(alph)+(D*L)*sin(alph);%<<<<<<obliqueCylProjection(D,L,alph)
     SF      =   1;%(D/2)*L/Aref;
