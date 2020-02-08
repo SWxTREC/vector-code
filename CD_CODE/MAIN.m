@@ -87,7 +87,7 @@ end
 alpha_out       =   EA_vec;
 
 %% CD computation
-%% Set Outputs
+% Set Outputs
 CD              =   -99*ones(Npts,1);
 Aout            =   A*ones(Npts,1);
 Fcoef           =   -99*ones(Npts,1);
@@ -98,8 +98,8 @@ for k=1:Npts
         
         COEFS       =   CD_sphere2(V_rel(k),NO_DENS(k,:),T_atm(k),T_w,EA_vec(k),0,1,0,m_s,0);
         CD(k)       =   COEFS(2);
-        Aout(k)     =   A;
-        Fcoef(k)    =   COEFS(2)*A;
+        Aout(k)     =   pi*D^2/4;
+        Fcoef(k)    =   COEFS(2)*Aout(k);%fix this later
         
     end
     
@@ -108,7 +108,7 @@ for k=1:Npts
         
         COEFS       =   CD_plate_effective(Phi*pi/180,V_rel(k),NO_DENS(k,:),T_atm(k),T_w,EA_vec(k),0,1,0,m_s,0,A);
         CD(k)       =   COEFS(2);
-        Aout(k)     =   A*sin(Phi*pi/180);
+        Aout(k)     =   COEFS(4);%abs(A*sin(Phi*pi/180));
         Fcoef(k)    =   COEFS(2)*Aout(k);%fix this later
         
     end
@@ -118,7 +118,7 @@ for k=1:Npts
         
         COEFS       =   CD_cyl_effective(V_rel(k),NO_DENS(k,:),T_atm(k),T_w,EA_vec(k),D,L,Phi*pi/180);
         CD(k)       =   COEFS(2);
-        Aout(k)     =   obliqueCylProjection(D,L,Phi*pi/180);
+        Aout(k)     =   COEFS(4);%abs(obliqueCylProjection(D,L,Phi*pi/180));
         Fcoef(k)    =   COEFS(2)*Aout(k);%fix this later
         
     end
