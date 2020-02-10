@@ -10,7 +10,7 @@ objectType: string
 
 `cylinder, sphere, plate, plate model`
 
-![Objects](vector_objects.png)
+![Objects](https://raw.githubusercontent.com/SWxTREC/vector-code/master/docs/vector_objects.png)
 
 diameter: float
 
