@@ -8,7 +8,9 @@ Overview of the input/output requirements for VECTOR. Initially, there will be a
 
 objectType: string
 
-`sphere, cylinder, plate, plate model`
+`cylinder, sphere, plate, plate model`
+
+![Objects](vector_objects.png)
 
 diameter: float
 

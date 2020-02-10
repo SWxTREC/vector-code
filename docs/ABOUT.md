@@ -1,5 +1,8 @@
 # VECTOR
+
 Vehicle Environment Coupling and TrajectOry Response
+
+The VECTOR code is publicly available on our [GitHub Repository](https://github.com/SWxTREC/vector-code).
 
 ## SESAM
 
