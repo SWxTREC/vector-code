@@ -1,15 +1,40 @@
 function [CD_status, CD, Aout, Fcoef, alpha_out] = MAIN(obj_type,D,L,A,Phi,Theta,Ta,Va,n_O,n_O2,n_N2,n_He,n_H,EA_model,alpha,m_s,POSVEL,fnamesurf)
-%Computes CD at an array of points
 %
 %
-%INPUTS:
+%Computes the free-molecular flow drag coefficients, force coefficients, 
+%and areas of basic shapes as well as more complex geometries as specified 
+%by a "plate model" geometry. Gas surface interaction parameters are 
+%specified by either the SESAM model, a fixed value defined by the user, or 
+%the Goodman model. Values can be computed at a single set of inputs or an
+%array of inputs specified by position and velocity.
+%
+%
+%Written by:Marcin D. Pilinski, February 2020
+%           Space Weather Technology, Research and Education Center
+%           Laboratory for Atmospheric and Space Physics
+%           University of Colorado Boulder
+%
+%=========================================================================
+%INPUTS
 %obj_type:  Object shape designated by 1-sphere, 2-plate with one side
 %           exposed to flow, 3-cylinder, 4-geometry file
 %
-%D:
+%D:         Diameter for sphere and cylinder [m]
 %
-%L:
+%L:         Length for cylinder [m]
 %
+%Phi:       Pitch angle [deg]
+%
+%Theta:     Sideslip anlge [deg]
+%
+%Ta:        Ambient atmospheric temperature [K]
+%
+%Va:        Free-stream velocity magnitude, or speed [m/s]
+%
+%n_O,n_O2,n_N2,n_He,n_H: partial number densities of atmospheric species 
+%           atomic oxygen, molecular oxygen, molecular nitrogen, helium,
+%           and hydrogen respectively. [m^-3]
+%           
 %EA_model:  Method of energy accommodation coefficient computation
 %           -1:SESAM model, 0:set to constant value,  2: goodman model
 %
@@ -18,10 +43,21 @@ function [CD_status, CD, Aout, Fcoef, alpha_out] = MAIN(obj_type,D,L,A,Phi,Theta
 %m_s:       surface mass in amu
 %
 %POSVEL:    Nx8 array of time, position, and velocity inputs with the columns 
-%           defined as[JD,Lon,Lat,Alt,Speed,F107A,F107,Ap]
+%           defined as[JD,Lon,Lat,Alt,Speed,F107A?,F107?,Ap?]
 %
 %fnamesurf: surface element file in .wrl format
-%OUTPUTS:   
+%
+%=========================================================================
+%OUTPUTS
+%CD_status: 1-run successful
+%
+%CD:        Drag coefficient
+%
+%Aout:      Cross Sectional Area [m^2]
+%
+%Fcoef:     Force Coefficient [m^2]
+%
+%alpha_out: Energy Accomodation Coefficient  
 
 
 %% Test Flags
@@ -44,11 +80,21 @@ Eb           	=   5.7;%eV
 Kf              =   3e4;
 Ko              =   5e6;
 
+Rcm         	=   [-0.01 0.02 0.01]';           %position of center of mass from center of rectangular solid or sphere [m]
+
+
+%plotting constants
+ppscl         	=   1.25;
+offsetx     	=   -0.05;
+offsety        	=   -0.05;
+ppwidth        	=   8.5*ppscl;
+ppheight     	=   8.5*ppscl;
 
 
 %% input check
 %check size of position and velocity file
 [rpv,cpv]       =   size(POSVEL);
+
 
 
 %% multi point mode inputs
@@ -92,6 +138,26 @@ CD              =   -99*ones(Npts,1);
 Aout            =   A*ones(Npts,1);
 Fcoef           =   -99*ones(Npts,1);
 
+%SURFACE MODEL (PLATE MODEL) GEOMETRY
+if obj_type == 4 %geometry file
+    
+    %open geometry and convert to vertex array
+    hf0       	=   figure('visible','off');
+    ViewDir     =   [Phi,Theta];%view direction
+    geometry_wizard(fnamesurf,'TRIprops.txt',0,1,ViewDir)
+    set(gcf,'Color','white')
+    set(gca,'FontSize',16)
+    set(hf0, 'PaperSize', [ppwidth ppheight], 'PaperPosition', [0+offsetx 0+offsety ppwidth+offsetx ppheight+offsety])
+    %print(hf0, '-dpdf', 'geometry.pdf')
+    saveas(hf0,'geometry.png')
+
+    %load triangle array
+    TRS     	=   load('TRIprops.txt');
+    n_triangles	=   length(TRS(:,1)); 
+    
+end
+
+
 for k=1:Npts
     %SPHERE
     if obj_type == 1
@@ -121,6 +187,31 @@ for k=1:Npts
         Aout(k)     =   COEFS(4);%abs(obliqueCylProjection(D,L,Phi*pi/180));
         Fcoef(k)    =   COEFS(2)*Aout(k);%fix this later
         
+    end
+    
+     %SURFACE MODEL (PLATE MODEL) GEOMETRY
+    if obj_type == 4
+        
+        %velocity vector
+     	V_horz     	=   V_rel(k)*cos(Phi(k)*pi/180);
+        V_z        	=   V_rel(k)*sin(Phi(k)*pi/180);
+        V_x        	=   V_horz*cos(Theta(k)*pi/180);
+        V_y       	=   V_horz*sin(Theta(k)*pi/180);
+        V_plate_in	=   [V_x,V_y,V_z];
+        
+        
+        EPSILprops	=   zeros(n_triangles,1);%specular fraction
+        
+        %CD computation
+        tic
+        COEFS     	=   CD_triFile_effective(TRS,V_plate_in,NO_DENS(k,:),MASS_MAT(k,:),T_atm(k),T_w,EA_vec(k),...
+                                             EPSILprops, nu*ones(n_triangles,1), phi_o*ones(n_triangles,1),...
+                                             m_s*ones(n_triangles,1),ff,Rcm',set_acqs);
+        toc
+        CD(k)       =   COEFS(2);
+        Aout(k)     =   COEFS(4);%abs(obliqueCylProjection(D,L,Phi*pi/180));
+        Fcoef(k)    =   COEFS(2)*Aout(k);%fix this later                                
+
     end
 end
 
