@@ -144,15 +144,18 @@ if obj_type == 4 %geometry file
     %open geometry and convert to vertex array
     hf0       	=   figure('visible','off');
     ViewDir     =   [Phi,Theta];%view direction
-    geometry_wizard(fnamesurf,'TRIprops.txt',0,1,ViewDir)
+    dir_path    =   fileparts(fnamesurf);
+    tri_file    =   fullfile(dir_path, 'TRIprops.txt');
+    png_file    =   fullfile(dir_path, 'geometry.png');
+    geometry_wizard(fnamesurf,tri_file,0,1,ViewDir)
     set(gcf,'Color','white')
     set(gca,'FontSize',16)
     set(hf0, 'PaperSize', [ppwidth ppheight], 'PaperPosition', [0+offsetx 0+offsety ppwidth+offsetx ppheight+offsety])
     %print(hf0, '-dpdf', 'geometry.pdf')
-    saveas(hf0,'geometry.png')
+    saveas(hf0,png_file)
 
     %load triangle array
-    TRS     	=   load('TRIprops.txt');
+    TRS     	=   load(tri_file);
     n_triangles	=   length(TRS(:,1)); 
     
 end
