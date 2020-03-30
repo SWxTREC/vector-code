@@ -1,6 +1,6 @@
 function [CDXYZtot,CDtot,Atot,Ftot,TQtot]=PLATEaeroCoeffs(TRI,V,n,m,Ti,Tw,accom,EPSIL,nu,phi_o,m_surface,ff,Rcm,set_acqs)
 %given an arbitrary triangle file, computes the FMF drag of the entire
-%surface, cross sectional area, and total force, assumes
+%surface, cross sectional area, and total force, for a single species assumes
 %ff is the fraction of quasi specular component
 %Rcm        =   cm offset from coordinate system
 %
@@ -66,7 +66,7 @@ for k=1:ntri
     
     %the Maxwellian component
     epsil               =   EPSIL(k);
-    [CDm,~,CNm,CAm]     =   sentman(alph,Ti,Tw,accom,epsil,Vmag,m,'surfacespec',-1,1,1);
+    [CDm,~,CNm,CAm]     =   sentman(alph,Ti,Tw,accom,epsil,Vmag,m,'surfacespec',-1);
     
     %the quasi-specular component (Schamberg)
     CDqs                =   0;    
