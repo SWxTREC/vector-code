@@ -61,17 +61,13 @@ accommodationModel: string
 
 `SESAM, Goodman, Fixed`
 
-accommodationParameters: dictionary
+surfaceMass: float
 
-```text
-Parameters to pass into the accommodation model
+`Surface mass of the object [amu]`
 
-alpha: float
+energyAccomodation: float
 
-ms: float
-
-    surface mass [amu]
-```
+`Energy accomodation value for the object [-]`
 
 ### Example Input Payload
 
@@ -91,8 +87,8 @@ ms: float
                 "He": 1e6,
                 "H": 1e4},
 "accommodationModel": "SESAM",
-"accommodationParameters": {"alpha": 0,
-                            "ms": 0}
+"energyAccomodation": 0,
+"surfaceMass": 0}
 }
 ```
 
@@ -104,11 +100,11 @@ dragCoefficient: float
 
 projectedArea: float
 
-`The projected area of the object`
+`The projected area of the object [m2]`
 
 forceCoefficent: float
 
-`The force coefficient of the object`
+`The force coefficient of the object [m2]`
 
 ### Example Output Payload
 
