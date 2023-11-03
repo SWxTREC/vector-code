@@ -15,12 +15,12 @@ if isnan(theta_out)
     theta_out   =   pi/2;
 end
 
-%check fro reflections back into the surface
+%check for reflections back into the surface
 if theta_out < phi_o
     phi_o       =   theta_out;
 end
 
-%beamwith function
+%beamwidth function
 tmp             =   2*phi_o/pi;
 PHI             =    ((1-tmp^2)/(1-4*tmp^2))*(0.5*sin(2*phi_o)-tmp)/(sin(phi_o)-tmp);%phi=15deg ===> PHI=0.99
 if isnan(PHI)
@@ -28,7 +28,7 @@ if isnan(PHI)
     tmp       	=   2*phi_o/pi;
     PHI      	=    ((1-tmp^2)/(1-4*tmp^2))*(0.5*sin(2*phi_o)-tmp)/(sin(phi_o)-tmp);
 end
-
+%PHI
 
 %mass ratio
 mu              =   m_gas/m_surface;
@@ -39,9 +39,10 @@ if set_acqs==0
 end
     
 %rms thermal speed
-c               =   sqrt(2*kb*Tatm/m_gas);
+%c               =   sqrt(2*kb*Tatm/m_gas);
+c               =   sqrt(3*kb*Tatm/m_gas); %this one is consistent with schamberg's report
 
-%iverse of the speed ratio (Schamberg's c/U)
+%inverse of the speed ratio (Schamberg's c/U)
 s               =   c/Uinf;
 
 %kinetic energy expressed in temperature
@@ -53,7 +54,7 @@ thetaP          =   (asin(sin((theta))/sqrt(1+s^2)));%<<<<<ABS?????<<<<<
 %delta correction angle
 delta           =   atan(s);
 [CD1,CN1,CT1]  	=   CDhyperthermal(PHI,theta,Uinf,accomm,nu,Tw,Tin);
-if htrhmFlag == 0
+if htrhmFlag == 0       %currently set to 0, which means that the nonhyperthermal approximation is being used
     [CD2,CN2,CT2]  	=   CDhyperthermal(PHI,theta+delta,Uinf,accomm,nu,Tw,Tin);
     [CD3,CN3,CT3]  	=   CDhyperthermal(PHI,theta-delta,Uinf,accomm,nu,Tw,Tin);
     [CD4,CN4,CT4]  	=   CDhyperthermal(PHI,thetaP,Uinf,accomm,nu,Tw,Tin);
