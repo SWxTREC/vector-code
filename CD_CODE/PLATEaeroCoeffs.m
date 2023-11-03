@@ -1,4 +1,4 @@
-function [CDXYZtot,CDtot,Atot,Ftot,TQtot]=PLATEaeroCoeffs(TRI,V,n,m,Ti,Tw,accom,EPSIL,nu,phi_o,m_surface,ff,Rcm,set_acqs)
+function [CDXYZtot,CDtot,Atot,Ftot,TQtot,alpha_out]=PLATEaeroCoeffs(TRI,V,n,m,Ti,Tw,accom,EPSIL,nu,phi_o,m_surface,ff,Rcm,set_acqs,material,GSI_model)
 %given an arbitrary triangle file, computes the FMF drag of the entire
 %surface, cross sectional area, and total force, for a single species assumes
 %ff is the fraction of quasi specular component
@@ -28,8 +28,50 @@ CDVEC                   =   zeros(ntri,1);
 FXYZ                    =   zeros(ntri,3);
 CENTROIDS               =   zeros(ntri,3);
 
+
+cos_frac_vals = zeros(ntri,1);
+accom_vals = zeros(ntri,1);
+alpha_n_vals = zeros(ntri,1);
+sigma_t_vals = zeros(ntri,1);
+
+
+if material == 'SiO2'
+    %range of SiO2 parameters
+    incident_angles_data = 180 - [30, 45, 60]; %degrees
+    alpha_n_data = [0.98, 0.99, 0.98];
+    sigma_t_data = [0.49, 0.81, 0.83];
+    cos_frac_data = [0.97, 0.9, 0.79];
+    alpha_data = [0.71, 0.61, 0.44];
+
+elseif material == 'aluminum'
+    %range of aluminum parameters
+    incident_angles_data = 180 - [30, 60]; %degrees
+    alpha_n_data = [0.99, 0.98];
+    sigma_t_data = [0.59, 0.85];
+    cos_frac_data = [0.98, 0.88];
+    alpha_data = [0.72, 0.55];
+
+elseif material == 'Teflon'
+    %range of teflon parameters
+    incident_angles_data = 180 - [30, 45, 60]; %degrees
+    alpha_n_data = [0.99, 0.99, 0.98];
+    sigma_t_data = [0.69, 0.81, 0.84];
+    cos_frac_data = [0.96, 0.87, 0.76];
+    alpha_data = [0.62, 0.50, 0.30];
+
+elseif material == 'FR4'
+    %range of FR4 parameters
+    incident_angles_data = 180 - [30, 45, 60]; %degrees
+    alpha_n_data = [0.99, 0.99, 0.98];
+    sigma_t_data = [0.59, 0.79, 0.85];
+    cos_frac_data = [0.97, 0.93, 0.85];
+    alpha_data = [0.68, 0.63, 0.52];
+
+end
+
+
 %compute the cross sectional (Across) and planform (Ascale) areas and the
-%anles of attack for each element
+%angles of attack for each element
 %loop over triangles
 for k=1:ntri
     [N,Ct,A]            =   getTRIprops(TRI(k,1:9));%triangle normal and center, and planform area
@@ -40,6 +82,7 @@ for k=1:ntri
     XP                  =   [PAM(1,1),PAM(1,3),PAM(1,5)];
     YP                  =   [PAM(1,2),PAM(1,4),PAM(1,6)];
     ACROSS(k,1)         =   polyarea(XP,YP);%projected area of triangle
+    %ACROSS(k,1)         =   1.149;
     AFLAG(k,1)          =   0;
     if dir_flag==-1
         AFLAG(k,1)      =   1;
@@ -63,27 +106,76 @@ for k=1:ntri
     %compute the in plane and out of plane coefficients
     alph                =   acos(dot(V/Vmag,N/norm(N)));%?
     attk                =   -1*dir_flag*acos(dot(V/Vmag,a_vec));%angle of attack
+
+    dotted_VN(k,1) = acos(dot(V/Vmag,N/norm(N)));
+
+
+    if GSI_model == 3 %CLL quasi-specular reflection with alpha_n = 0.75, sigma_t = 0.9
+        alpha_n = 0.75;
+        sigma_t = 0.9;
+        alpha_t = sigma_t*(2-sigma_t);
+        [CDm,CLm,CNm,CAm] =      CLL_plate(alph,alpha_n,sigma_t,Vmag,Ti,m,Tw);
+        CN = CNm;
+        CA = CAm;
+        CD = CDm;
+        alpha_out = (alpha_n+alpha_t)/2;
+
+    elseif GSI_model == 4 %Extrapolated laboratory-derived GSI parameters that have been weighted by surface area
+        cos_frac = interp1(incident_angles_data, cos_frac_data, rad2deg(dotted_VN(k,1)), 'linear', 'extrap');
+	    accom = interp1(incident_angles_data, alpha_data, rad2deg(dotted_VN(k,1)), 'linear', 'extrap');
+	    alpha_n = interp1(incident_angles_data, alpha_n_data, rad2deg(dotted_VN(k,1)), 'linear', 'extrap');
+	    sigma_t = interp1(incident_angles_data, sigma_t_data, rad2deg(dotted_VN(k,1)), 'linear', 'extrap');
+
+        if cos_frac > 1
+            cos_frac = 1;
+        elseif cos_frac < 0
+            cos_frac = 0;
+        end
+        if accom > 1
+            accom = 1;
+        elseif accom < 0
+            accom = 0;
+        end
+        if alpha_n > 1
+            alpha_n = 1;
+        elseif alpha_n < 0
+            alpha_n = 0;
+        end
+        if sigma_t > 1
+            sigma_t = 1;
+        elseif sigma_t < 0
+            sigma_t = 0;
+        end
+
+        cos_frac_vals(k,1) = cos_frac;
+        accom_vals(k,1) = accom;
+        alpha_n_vals(k,1) = alpha_n;
+        sigma_t_vals(k,1) = sigma_t;
+
+        epsil               =   EPSIL(k);
+        [CDm,~,CNm,CAm]     =   sentman(alph,Ti,Tw,accom,epsil,Vmag,m,'surfacespec',-1);
+        [CDqs,CLqs,CNqs,CAqs] =      CLL_plate(alph,alpha_n,sigma_t,Vmag,Ti,m,Tw);
     
-    %the Maxwellian component
-    epsil               =   EPSIL(k);
-    [CDm,~,CNm,CAm]     =   sentman(alph,Ti,Tw,accom,epsil,Vmag,m,'surfacespec',-1);
-    
-    %the quasi-specular component (Schamberg)
-    CDqs                =   0;    
-    CNqs                =   0;
-    CAqs                =   0;
-    if ff > 0%(pi/2-alph)>-theta_therm && 
-        %CDqs         	=   schamberg_plate(pi/2-alph,nu,Vmag,Ti,m,m_surface(k));%m_surfase is an indexed vector
-        [CDqs,CNqs,CAqs]   	=   schamberg_plate2(attk, nu(k),phi_o(k)*pi/180,Vmag,Ti,m,m_surface(k)*amu,Tw,0,set_acqs,accom);%m_surfase is an indexed vector
-                               %schamberg_plate2(theta,nu,   phi_o,          Uinf,Tatm,m_gas,m_surface,        Tw,htrhmFlag,set_acqs,accomm) 
+        %combined coefficients
+        CN                  =   (1-cos_frac)*CNqs + cos_frac*CNm;
+        CA                  =   (1-cos_frac)*CAqs + cos_frac*CAm;
+        CD                  =   (1-cos_frac)*CDqs + cos_frac*CDm;
+
+        alpha_cos = accom;
+        alpha_t = sigma_t*(2-sigma_t);
+        alpha_qs = (alpha_n+alpha_t)/2;
+        alpha_out = cos_frac*alpha_cos + (1-cos_frac)*alpha_qs;
+
+    else %Sentman diffuse with incomplete and/or variable energy accommodation
+        epsil               =   EPSIL(k);
+        [CDm,~,CNm,CAm]     =   sentman(alph,Ti,Tw,accom,epsil,Vmag,m,'surfacespec',-1);
+        alpha_out = accom;
+
+        CN = CNm;
+        CA = CAm;
+        CD = CDm;
+
     end
-    %CNqs                =   CDqs*cos(alph);
-    %CAqs                =   CDqs*sin(alph);
-    
-    %combined coefficients    
-    CN                  =   (1-ff)*CNm + ff*CNqs;
-    CA                  =   (1-ff)*CAm + ff*CAqs;
-    CD                  =   (1-ff)*CDm + ff*CDqs;
     
     %store coefficients
     CNVEC(k,1)          =   CN;
@@ -96,7 +188,9 @@ for k=1:ntri
     CDXYZ(k,3)          =   dot(NVEC(k,1:3),[0 0 1])*CN+dot(AVEC(k,1:3),[0 0 1])*CA;
     CDVEC(k,1)          =   CD;
     
+    
 end
+
 
 %compute the total cross sectional area, Atot
 Atot                    =   sum(ACROSS.*AFLAG);

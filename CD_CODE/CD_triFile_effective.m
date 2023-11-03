@@ -1,8 +1,10 @@
-function COEFS = CD_triFile_effective(TRS,V_plate_in,NO_DENS,MASS_MAT,T_atm,T_w,accom,EPSILprops,NU,PHI_O,M_SURF,ff,Rcm,set_acqs)
+function COEFS = CD_triFile_effective(TRS,V_plate_in,NO_DENS,MASS_MAT,T_atm,T_w,accom,EPSILprops,NU,PHI_O,M_SURF,ff,Rcm,set_acqs,htrhmFlag,material,GSI_model)
 %given an arbitrary triangle file, computes the FMF drag of the entire
 %surface, cross sectional area, and total force, weighed over multiple species
 %assumes ff is the fraction of quasi specular component
 %Rcm        =   cm offset from coordinate system
+
+[ntri,~]                =   size(TRS);
 
 %constants, 
 mO                  =   2.6560178e-26;                              %atomic oxygen mass (~16 amu) [kg]
@@ -24,24 +26,18 @@ TQXpart             =   zeros(1,5);
 TQYpart             =   zeros(1,5);
 TQZpart             =   zeros(1,5);
 
-
 %contants
 
 
-%cross sectional area
-% if alph == pi/2%prevent zero-crossing singularity
-%    alph= pi/2-eps; 
-% end
-
 %scan atomic masses
 for km=1:5
-    if NO_DENS(km) == 0%skip zero number denisties
+    %order of species: [n_N2 n_O2 n_O n_He n_H]
+    if NO_DENS(km) == 0%skip zero number densities
         continue
     end
     
- 	[CDXYZtot,CDtot,Atot,Ftot,TQtot]    =   PLATEaeroCoeffs(TRS, V_plate_in, NO_DENS(km), MASS_MAT(km), T_atm, T_w, accom, EPSILprops, NU, PHI_O,M_SURF,ff,Rcm,set_acqs);
+ 	[CDXYZtot,CDtot,Atot,Ftot,TQtot,alpha_out]    =   PLATEaeroCoeffs(TRS, V_plate_in, NO_DENS(km), MASS_MAT(km), T_atm, T_w, accom, EPSILprops, NU, PHI_O,M_SURF,ff,Rcm,set_acqs,material,GSI_model);
 
-    %[CDqs,~,~]      = schamberg_sphere(nu,phi_o*pi/180,Vt,Tatm,MASS_MAT(km),ms,Tw,0,set_acqs,accom);%<<<future capability
     CDpart(1,km)    =   CDtot;
     CXpart(1,km)    =   CDXYZtot(1);
     CYpart(1,km)    =   CDXYZtot(2);
@@ -52,6 +48,7 @@ for km=1:5
     TQXpart(1,km)  	=   TQtot(1);
     TQYpart(1,km)  	=   TQtot(2);
     TQZpart(1,km) 	=   TQtot(3);
+    
 end
 
 CDL                 =   dot(CDpart,RHO_MAT)/RhoTot;%recombine composite drag ceofficient
@@ -68,4 +65,4 @@ TQZL                =   dot(TQZpart,RHO_MAT)/RhoTot;%recombine composite CAz ceo
 CL1=0;
 CL2=0;
 
-COEFS               =   [CL1 CDL CL2 Atot CXL CYL CZL FXL FYL FZL TQXL TQYL TQZL];%placeholders for future
+COEFS               =   [CL1 CDL CL2 Atot CXL CYL CZL FXL FYL FZL TQXL TQYL TQZL alpha_out];%placeholders for future
