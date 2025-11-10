@@ -1,4 +1,4 @@
-function [CD_status, CD, Aout, Fcoef, alpha_out] = MAIN(obj_type,D,L,A,Phi,Theta,Ta,Va,n_O,n_O2,n_N2,n_He,n_H,GSI_model,alpha,m_s,POSVEL,fnamesurf)
+function [CD_status, CD, Aout, Fcoef, alpha_out] = MAIN(obj_type,D,L,A,Phi,Theta,Ta,Va,n_O,n_O2,n_N2,n_He,n_H,n_CO2,GSI_model,alpha,m_s,POSVEL,fnamesurf,set_acqs)
 %
 %
 %Computes the free-molecular flow drag coefficients, force coefficients, 
@@ -31,12 +31,12 @@ function [CD_status, CD, Aout, Fcoef, alpha_out] = MAIN(obj_type,D,L,A,Phi,Theta
 %
 %Va:        Free-stream velocity magnitude, or speed [m/s]
 %
-%n_O,n_O2,n_N2,n_He,n_H: partial number densities of atmospheric species 
+%n_O,n_O2,n_N2,n_He,n_H, n_CO2: partial number densities of atmospheric species 
 %           atomic oxygen, molecular oxygen, molecular nitrogen, helium,
-%           and hydrogen respectively. [m^-3]
+%            hydrogen, carbon dioxide respectively. [m^-3]
 %           
 %GSI_model:  Method of energy accommodation coefficient computation and GSI model selection
-%           -1:SESAM model, 0:set to constant value,  2: goodman model,
+%           -1:SESAM model, 0:set to constant value: goodman model,
 %	    3:CLL quasi-specular reflection with alpha_n = 0.75, sigma_t = 0.9,
 %	    4:L1 extrapolated laboratory-derived GSI parameters
 %
@@ -67,7 +67,9 @@ function [CD_status, CD, Aout, Fcoef, alpha_out] = MAIN(obj_type,D,L,A,Phi,Theta
 
 
 %% Constants
-set_acqs        =   1;%quasi-specular, if set to 0, uses Goodman's clean surface alpha for the Schamberg Cd when ff > 0
+%set_acqs        =   1;%quasi-specular, if set to 0, uses Goodman's clean
+%surface alpha for the Schamberg Cd when ff > 0 %brought into inputs MDP
+%20250929
 ff              =   0;%specular fraction, 0 = Sentman, 1 = Schamberg
 nu              =   1;%quasi specular "bending" parameter, 1 = specular Schamberg, infinity = diffuse Schamberg
 phi_o           =   0.0;%quasi specular lobe width %this should be input in degrees, 0 = specular Schamberg, 90 = diffuse Schamberg
@@ -77,6 +79,7 @@ mO2         	=   mO*2;
 mN2             =   4.6528299e-26;                              %molecular nitrogen mass [kg]
 mHe             =   6.6465e-027;
 mH              =   1.6737e-027;
+mCO2            =   7.34e-26;
 kb           	=   1.3806503e-23;  %Boltzmann constant [J/K]
 Eb           	=   5.7;%eV
 Kf              =   3e4;
@@ -117,7 +120,7 @@ end
 if rpv == 0 
     Npts        =   1;
     %retrieve atmospheric properties
-    NO_DENS     =   [n_N2 n_O2 n_O n_He n_H];
+    NO_DENS     =   [n_N2 n_O2 n_O n_He n_H n_CO2];
     V_rel       =   Va;
     T_atm       =   Ta;
     
@@ -126,7 +129,7 @@ end
 
 %% Energy Accommodation Coefficients
 %mean molecular mass calculation
-MASS_MAT       	=   [mN2*ones(Npts,1) mO2*ones(Npts,1) mO*ones(Npts,1) mHe*ones(Npts,1) mH*ones(Npts,1)];
+MASS_MAT       	=   [mN2*ones(Npts,1) mO2*ones(Npts,1) mO*ones(Npts,1) mHe*ones(Npts,1) mH*ones(Npts,1) mCO2*ones(Npts,1)];
 m_b             =   sum(MASS_MAT .* NO_DENS,2)./sum(NO_DENS,2);
 ro              =   mO*NO_DENS(:,3);
 
@@ -148,23 +151,25 @@ Fcoef           =   -99*ones(Npts,1);
 if obj_type == 4 %geometry file
     
     %open geometry and convert to vertex array
-    %hf0       	=   figure('visible','off');
+    hf0       	=   figure('visible','off');
     ViewDir     =   [Phi,Theta];%view direction %uncomment when using geometry_wizard
 
     dir_path    =   fileparts(fnamesurf); %should be always uncommented
     tri_file    =   fullfile(dir_path, 'TRIprops.txt'); %should be always uncommented
 
-    %png_file    =   fullfile(dir_path, 'geometry.png');
-    geometry_wizard(fnamesurf,tri_file,0,0,ViewDir)  %make 4th argument 0 to turn off the plotting   %need to uncomment when switching to a new geometry file !!
-    %geometry_wizard(fnamesurf,tri_file,0,1,ViewDir)  %make 4th argument 0 to turn off the plotting   %need to uncomment when switching to a new geometry file !!
-    %set(gcf,'Color','white')
-    %set(gca,'FontSize',16)
-    %set(hf0, 'PaperSize', [ppwidth ppheight], 'PaperPosition', [0+offsetx 0+offsety ppwidth+offsetx ppheight+offsety])
-    %print(hf0, '-dpdf', 'geometry.pdf')
-    %saveas(hf0,png_file)
+    png_file    =   fullfile(dir_path, 'geometry.png');
+    %geometry_wizard(fnamesurf,tri_file,0,0,ViewDir)  %make 4th argument 0 to turn off the plotting   %need to uncomment when switching to a new geometry file !!
+    geometry_wizard(fnamesurf,tri_file,0,1,ViewDir)  %make 4th argument 0 to turn off the plotting   %need to uncomment when switching to a new geometry file !!
+    
+    set(gcf,'Color','white')
+    set(gca,'FontSize',16)
+    set(hf0, 'PaperSize', [ppwidth ppheight], 'PaperPosition', [0+offsetx 0+offsety ppwidth+offsetx ppheight+offsety])
+    print(hf0, '-dpdf', 'geometry.pdf')
+    saveas(hf0,png_file)
 
     %load triangle array
     TRS     	=   load(tri_file);
+    %TRS     	=   load('TRIpropsXVI.txt');%<<<bypass VRML file
     n_triangles	=   length(TRS(:,1)); 
     
 end
@@ -184,7 +189,7 @@ for k=1:Npts
     %PLATE W/ ONE SIDE EXPOSED TO FLOW
     if obj_type == 2
         
-        COEFS       =   CD_plate_effective(Phi*pi/180,V_rel(k),NO_DENS(k,:),MASS_MAT(k,:),T_atm(k),T_w,EA_vec(k),0,1,0,m_s,0,A,material,GSI_model);
+        COEFS       =   CD_plate_effective(Phi*pi/180,V_rel(k),NO_DENS(k,:),MASS_MAT(k,:),T_atm(k),T_w,EA_vec(k),0,1,0,m_s,set_acqs,A,material,GSI_model);
         CD(k)       =   COEFS(2);
         Aout(k)     =   COEFS(4);%abs(A*sin(Phi*pi/180));
         Fcoef(k)    =   COEFS(2)*Aout(k);%fix this later

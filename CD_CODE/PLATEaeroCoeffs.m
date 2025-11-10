@@ -111,8 +111,14 @@ for k=1:ntri
 
 
     if GSI_model == 3 %CLL quasi-specular reflection with alpha_n = 0.75, sigma_t = 0.9
-        alpha_n = 0.75;
-        sigma_t = 0.9;
+        if length(set_acqs) > 1
+            alpha_n = set_acqs(1);
+            sigma_t = set_acqs(2);
+        else
+            disp('using CLL default values, a_t=0.75, sig_t=0.9')
+            alpha_n = 0.75;%(sigma_n=0.5), ... 0,0 specular, 1,1 diffuse
+            sigma_t = 0.9;
+        end
         alpha_t = sigma_t*(2-sigma_t);
         [CDm,CLm,CNm,CAm] =      CLL_plate(alph,alpha_n,sigma_t,Vmag,Ti,m,Tw);
         CN = CNm;

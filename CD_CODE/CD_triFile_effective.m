@@ -12,26 +12,27 @@ mO2                 =   mO*2;
 mN2                 =   4.6528299e-26;                              %molecular nitrogen mass [kg]
 mHe                 =   6.6465e-027;
 mH                  =   1.6737e-027;
+mCO2                =   7.34e-26;
 
 RHO_MAT             =   MASS_MAT.*NO_DENS;
 RhoTot              =   dot(MASS_MAT,NO_DENS);
-CDpart              =   zeros(1,5);
-CXpart              =   zeros(1,5);
-CYpart              =   zeros(1,5);
-CZpart              =   zeros(1,5);
-FXpart              =   zeros(1,5);
-FYpart              =   zeros(1,5);
-FZpart              =   zeros(1,5);
-TQXpart             =   zeros(1,5);
-TQYpart             =   zeros(1,5);
-TQZpart             =   zeros(1,5);
+CDpart              =   zeros(1,6);
+CXpart              =   zeros(1,6);
+CYpart              =   zeros(1,6);
+CZpart              =   zeros(1,6);
+FXpart              =   zeros(1,6);
+FYpart              =   zeros(1,6);
+FZpart              =   zeros(1,6);
+TQXpart             =   zeros(1,6);
+TQYpart             =   zeros(1,6);
+TQZpart             =   zeros(1,6);
 
 %contants
 
 
 %scan atomic masses
-for km=1:5
-    %order of species: [n_N2 n_O2 n_O n_He n_H]
+for km=1:6
+    %order of species: [n_N2 n_O2 n_O n_He n_H n_CO2]
     if NO_DENS(km) == 0%skip zero number densities
         continue
     end
